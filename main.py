@@ -8,18 +8,37 @@ ROWS = 3
 COLS = 3
 
 symbol_design = {
-    "A": 2,
-    "B": 4,
-    "C": 6,
-    "D": 8
+    ("A", 2, 10),
+    ("B", 4, 4),
+    ("C", 6, 2),
+    ("D", 8, 1)
 }
+
+
+def check_winnings(reels, lines, wager):
+    winnings = 0
+    slot = [list(x) for x in zip(*reels)][:lines]
+    for row in slot:
+        symbol = row[0]
+        win = True
+        for col in row[1:]:
+            if col != symbol:
+                win = False
+                break
+        if win:
+            for symbol_set in symbol_design:
+                if symbol_set[0] == symbol:
+                    value = symbol_set[2]
+                    winnings += wager * value
+        print(row)
+    return winnings
 
 
 def get_slot_machine_spin(rows, cols, symbols):
     all_symbols = []
-    for symbol, symbol_count in symbols.items():
-        for _ in range(symbol_count):
-            all_symbols.append(symbol)
+    for symbol in symbols:
+        for _ in range(symbol[1]):
+            all_symbols.append(symbol[0])
 
     reels = []
     for _ in range(cols):
@@ -30,8 +49,9 @@ def get_slot_machine_spin(rows, cols, symbols):
 
 
 def print_slot_machine(reels):
-    for row in range(len(reels[0])):
-        print("|".join(reels[row]))
+    slot = [list(x) for x in zip(*reels)]
+    for row in slot:
+        print("|".join(row))
 
 
 def deposit():
@@ -78,14 +98,32 @@ def get_bet(lines, balance):
     return wager
 
 
-def main():
-    balance = deposit()
+def play_game(balance):
     lines = get_number_of_lines()
     wager = get_bet(lines, balance)
-    print(f"You are betting ${wager} on {lines} lines. Your total bet is ${lines * wager}.")
+    total_wager = lines * wager
+    print(f"You are betting ${wager} on {lines} lines. Your total bet is ${total_wager}.")
 
     reels = get_slot_machine_spin(ROWS, COLS, symbol_design)
     print_slot_machine(reels)
+
+    winnings = check_winnings(reels, lines, wager)
+    if winnings > 0:
+        print(f"You won ${winnings}!")
+    else:
+        print("You won NOTHING loser!")
+
+    return winnings - total_wager
+
+
+def main():
+    balance = deposit()
+    while True:
+        print(f"Current balance is ${balance}.")
+        spin = input("Press enter to spin (q to quit).")
+        if spin == "q":
+            break
+        balance += play_game(balance)
 
 
 main()
